@@ -1,0 +1,32 @@
+#
+- name: ceph - install https support for apt
+  apt:
+    name: "apt-transport-https"
+    state: "present"
+
+- name: ceph - add key
+  apt_key:
+    url: "https://download.ceph.com/keys/release.asc"
+
+- name: ceph - add repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: "present"
+    update_cache: yes
+  with_items:
+    - "deb https://download.ceph.com/debian-{{ release_name }}/ {{ ansible_lsb.codename }} main"
+
+- name: ceph - install w/dependencies
+  apt:
+    name: "{{ item }}"
+    state: "present"
+  with_items:
+    - "libaio1"
+    - "libsnappy1"
+    - "libcurl3"
+    - "curl"
+    - "libgoogle-perftools4"
+    - "google-perftools"
+    - "libleveldb1"
+    - "s3cmd"
+    - "ceph"
