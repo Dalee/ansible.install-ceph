@@ -1,0 +1,174 @@
+#
+- name: ceph - install https support for apt
+  apt:
+    name: "apt-transport-https"
+    state: "present"
+
+- name: ceph - add key
+  apt_key:
+    url: "https://download.ceph.com/keys/release.asc"
+
+- name: ceph - add repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: "present"
+    update_cache: yes
+  with_items:
+    - "deb https://download.ceph.com/debian-{{ release_name }}/ {{ ansible_lsb.codename }} main"
+
+- name: ceph - install w/dependencies
+  apt:
+    name: "{{ item }}"
+    state: "present"
+  with_items:
+    - "libaio1"
+    - "libsnappy1"
+    - "libcurl3"
+    - "curl"
+    - "libgoogle-perftools4"
+    - "google-perftools"
+    - "libleveldb1"
+    - "s3cmd"
+    - "ceph"
+    - "ceph-mds"
+    - "radosgw"
+
+#
+# black magic starts here..
+#
+
+##################################################
+# kill services, order matters
+##################################################
+- name: ceph - setup rgw - kill radosgw if exists
+  command: pkill radosgw
+  register: kill_result
+  failed_when: kill_result.rc > 1
+  changed_when: kill_result.rc == 0
+
+- name: ceph - setup mds - kill mds if exists
+  command: pkill ceph-mds
+  register: kill_result
+  failed_when: kill_result.rc > 1
+  changed_when: kill_result.rc == 0
+
+- name: ceph - setup osd - kill osd if exists
+  command: pkill ceph-osd
+  register: kill_result
+  failed_when: kill_result.rc > 1
+  changed_when: kill_result.rc == 0
+
+- name: ceph - setup monitor - kill monitor if exists
+  command: pkill ceph-mon
+  register: kill_result
+  failed_when: kill_result.rc > 1
+  changed_when: kill_result.rc == 0
+
+
+#
+# etc
+#
+- name: ceph - setup keys - client.admin
+  template:
+    src: "etc_data/ceph.client.admin.keyring.j2"
+    dest: "/etc/ceph/ceph.client.admin.keyring"
+    mode: 0644
+
+- name: ceph - setup keys - mon keyring
+  template:
+    src: "etc_data/ceph.mon.keyring.j2"
+    dest: "/etc/ceph/ceph.mon.keyring"
+    mode: 0644
+
+- name: ceph - setup keys - combined keyring
+  shell: "cat /etc/ceph/ceph.mon.keyring /etc/ceph/ceph.client.admin.keyring > /etc/ceph/ceph.keyring"
+
+- name: ceph - setup config - ceph.conf
+  template:
+    src: "etc_data/ceph.conf.j2"
+    dest: "/etc/ceph/ceph.conf"
+    mode: 0644
+
+#
+# monitor
+#
+- name: ceph - setup monitor - check directory
+  file:
+    path: "/var/lib/ceph/mon/ceph-ceph"
+    state: "directory"
+
+- name: ceph - setup monitor - force create fs
+  shell: "ceph-mon -i ceph --mkfs"
+
+- name: ceph - setup monitor - copy keyring
+  template:
+    src: "lib_data/mon.keyring.j2"
+    dest: "/var/lib/ceph/mon/ceph-ceph/keyring"
+
+- name: ceph - run monitor
+  shell: "ceph-mon -i ceph"
+
+#
+# osd
+#
+- name: ceph - setup osd - check directory
+  file:
+    path: "/var/lib/ceph/osd/ceph-0"
+    state: "directory"
+
+- name: ceph - setup osd - check directory/current
+  stat:
+    path: "/var/lib/ceph/osd/ceph-0/current"
+  register: osd_current
+
+- name: ceph - setup osd - create new
+  shell: "ceph osd create"
+  when: not osd_current.stat.exists
+
+- name: ceph - setup osd - force create fs
+  shell: "ceph-osd -i 0 --mkfs"
+  when: not osd_current.stat.exists
+
+- name: ceph - setup osd - create keyring
+  shell: "ceph auth get-or-create osd.0 osd 'allow *' mon 'allow profile osd' -o /var/lib/ceph/osd/ceph-0/keyring"
+
+- name: ceph - setup osd - osd crush
+  shell: "ceph osd crush add 0 1 root=default host=ceph"
+
+- name: ceph - run osd
+  shell: "ceph-osd -i 0"
+
+#
+# mds
+#
+- name: ceph - setup mds - check directory
+  file:
+    path: "/var/lib/ceph/mds/ceph-ceph"
+    state: "directory"
+
+- name: ceph - setup mds - create keyring
+  shell: "ceph auth get-or-create mds.ceph mds 'allow' osd 'allow *' mon 'allow profile mds' -o /var/lib/ceph/mds/ceph-ceph/keyring"
+
+- name: ceph - run mds
+  shell: "ceph-mds -i ceph"
+
+#
+# rgw
+#
+- name: ceph - setup rgw - check directory
+  file:
+    path: "/var/lib/ceph/radosgw/ceph"
+    state: "directory"
+
+- name: ceph - setup rgw - create keyring
+  shell: "ceph auth get-or-create client.radosgw.gateway osd 'allow rwx' mon 'allow rw' -o /var/lib/ceph/radosgw/ceph/keyring"
+
+- name: ceph - run radosgw
+  shell: "radosgw -c /etc/ceph/ceph.conf -n client.radosgw.gateway -k /var/lib/ceph/radosgw/ceph/keyring"
+
+#
+# wait 5 sec to finish boot
+#
+- name: Wait for thing to boot
+  pause:
+    seconds: 5

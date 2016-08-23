@@ -1,0 +1,7 @@
+#
+- name: ceph - create s3cfg
+  template:
+    src: "s3cfg.j2"
+    dest: "/home/vagrant/.s3cfg"
+    owner: "vagrant"
+    group: "vagrant"

@@ -1,0 +1,8 @@
+#
+- name: ceph - install bash.d env
+  template:
+    src: "ceph.rc.j2"
+    dest: "/etc/bash.d/ceph.rc"
+    owner: "root"
+    group: "root"
+    mode: 0644

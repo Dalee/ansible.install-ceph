@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+# export access and secure key for ceph access..
+export CEPH_ACCESS_KEY="{{ access_key }}"
+export CEPH_SECRET_KEY="{{ secret_key }}"
+
+export CEPH_PUBLIC_ADDRESS="{{ ansible_eth1.ipv4.address }}"
+export CEPH_PUBLIC_NETWORK="{{ ansible_eth1.ipv4.network }}/24"

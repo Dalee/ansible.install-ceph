@@ -1,0 +1,12 @@
+#
+- name: ceph - check user already created
+  shell: "radosgw-admin user info --uid=s3user"
+  failed_when: not user_info_result.rc == 22 and not user_info_result.rc == 0
+  register: user_info_result
+
+- name: ceph - remove user
+  shell: "radosgw-admin user rm --uid=s3user"
+  when: user_info_result.rc == 0
+
+- name: ceph - create user
+  shell: 'radosgw-admin user create --uid=s3user --display-name="s3 user" --access-key="{{ access_key }}" --secret="{{ secret_key }}"'

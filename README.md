@@ -1,3 +1,4 @@
 # Ceph
 
-Install ceph object gateway. Currently WIP.
+Install ceph. 
+

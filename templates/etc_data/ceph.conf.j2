@@ -1,0 +1,23 @@
+[global]
+fsid = 52ffcc3b-2723-4c86-a394-13f0b26f89c5
+mon initial members = {{ project_name }}
+mon host = {{ ansible_eth1.ipv4.address }}
+public network = {{ ansible_eth1.ipv4.network }}/24
+cluster network = {{ ansible_eth1.ipv4.network }}/24
+auth cluster required = cephx
+auth service required = cephx
+auth client required = cephx
+osd crush chooseleaf type = 0
+osd journal size = 100
+osd pool default pg num = 8
+osd pool default pgp num = 8
+osd pool default size = 1
+osd max object name len = 256
+osd max object namespace len = 64
+
+[client.radosgw.gateway]
+debug rgw = 20
+rgw dns name = {{ project_name }}.local
+rgw enable log rados = true
+rgw enable ops log = true
+rgw_frontends = civetweb port=7480
