@@ -5,7 +5,7 @@
   register: user_info_result
 
 - name: ceph - remove user
-  shell: "radosgw-admin user rm --uid=s3user"
+  shell: "radosgw-admin user rm --uid=s3user --purge-data"
   when: user_info_result.rc == 0
 
 - name: ceph - create user
