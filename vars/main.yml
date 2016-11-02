@@ -1,4 +1,4 @@
-release_name: hammer
+release_name: jewel
 access_key: "tohF1taivo2ohlaec3eelud9ahWahs9c"
 secret_key: "Shaesh8dee2ohei5aeMeeFaaPai4oh5U"
 socket_path: "/var/run/radosgw.socket"
