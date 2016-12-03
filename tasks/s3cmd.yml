@@ -1,0 +1,8 @@
+#
+- name: ceph - install python-pip
+  apt:
+    name: "python-pip"
+    state: "present"
+
+- name: ceph - install s3cmd
+  command: pip install s3cmd

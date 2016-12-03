@@ -29,7 +29,6 @@
     - "google-perftools"
     - "libleveldb1"
     - "python-magic"
-    - "s3cmd"
     - "ceph"
     - "ceph-mds"
     - "radosgw"

@@ -1,5 +1,6 @@
 #
 - include: ceph.yml
+- include: s3cmd.yml
 - include: bashd.yml
 - include: profile.yml
 - include: user.yml
