@@ -21,13 +21,7 @@
     name: "{{ item }}"
     state: "present"
   with_items:
-    - "libaio1"
-    - "libsnappy1"
-    - "libcurl3"
     - "curl"
-    - "libgoogle-perftools4"
-    - "google-perftools"
-    - "libleveldb1"
     - "python-magic"
     - "ceph"
     - "ceph-mds"

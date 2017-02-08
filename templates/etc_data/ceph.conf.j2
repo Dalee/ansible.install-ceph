@@ -1,9 +1,9 @@
 [global]
 fsid = 52ffcc3b-2723-4c86-a394-13f0b26f89c5
 mon initial members = {{ project_name }}
-mon host = {{ ansible_eth1.ipv4.address }}
-public network = {{ ansible_eth1.ipv4.network }}/24
-cluster network = {{ ansible_eth1.ipv4.network }}/24
+mon host = {{ ansible_enp0s8.ipv4.address }}
+public network = {{ ansible_enp0s8.ipv4.network }}/24
+cluster network = {{ ansible_enp0s8.ipv4.network }}/24
 auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx
